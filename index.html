@@ -16,3 +16,213 @@
 <!-- hitwebcounter Code START -->
 </body>
 </html>
+<!DOCTYPE html>
+<html> 
+  <head>
+    <title>Cool Spiral</title> 
+  </head>
+  <body>
+	<!--This draws the canvas on the webpage -->
+    <canvas id="mycanvas"></canvas> 
+  </body>
+ 
+  <!-- Include the processing.js library -->
+  <!-- See https://khanacademy.zendesk.com/hc/en-us/articles/202260404-What-parts-of-ProcessingJS-does-Khan-Academy-support- for differences -->
+  <script src="https://cdn.jsdelivr.net/processing.js/1.4.8/processing.min.js"></script> 
+  <script>
+  var programCode = function(processingInstance) {
+    with (processingInstance) {
+      size(400, 500); 
+      frameRate(15);
+        
+      // Paste code from Khan Academy here:
+textFont(createFont("Bauhaus 93"));
+textAlign(CENTER, CENTER);
+
+frameRate(100);
+
+noStroke();
+smooth();
+colorMode(HSB);
+
+var pressed = false;
+
+var x = 200;
+var b = 0;
+var r;
+var destination = random(150, 250);
+var speed = 0;// 1.5 easy 2.0 medium 2.5 hard
+var dead = false;
+var pic;
+var score = 0;
+
+var particles = [];
+function Particle(x, y, color) {
+    this.pos = new PVector(x, y);
+    this.vel = new PVector(0, speed);
+    this.size = 60;
+    this.c = color;
+    this.fade = 390;
+    
+    this.run = function() {
+        noStroke();
+        fill(frameCount/10 % 255,150,255);
+        ellipse(this.pos.x, this.pos.y, this.size, this.size);
+        this.pos.add(this.vel);
+        this.fade -= 1;
+    };
+}
+
+var Button = function(x,y,s, txt, sped){
+    this.color = color(frameCount/10 % 255,255,100);
+    this.s = s;
+    this.x = x;
+    this.y = y;
+    this.txt = txt;
+    this.speed = sped;
+    
+    this.draw = function() {
+        strokeWeight(10);
+        stroke(this.color, 100);
+        noFill();
+        ellipse(this.x+r,r+this.y+b,this.s,this.s);
+        stroke(this.color);
+        ellipse(this.x,this.y+b,this.s,this.s);
+        
+        fill(this.color, 100);
+        textSize(18);
+        text(txt, this.x+r, this.y+r+b);
+        fill(this.color);
+        text(txt, this.x, this.y+b);
+        noStroke();
+    };
+    this.update = function() {
+        this.distance = dist(this.x,this.y,mouseX,mouseY);
+        if(this.distance < this.s/2 && pressed){
+            speed = this.speed;
+        }
+        if(this.distance < this.s/2){
+            this.color = color(frameCount/10 % 255,255,70);
+        }
+        else{
+            this.color = color(frameCount/10 % 255,255,100);
+        }
+    };
+    this.run = function() {
+        this.draw();
+        this.update();
+    };
+};
+
+var easy = new Button(100,350, 80, "Easy", 1.5);
+var medium = new Button(200,350, 80, "Medium", 2);
+var hard = new Button(300,350, 80, "Hard", 2.5);
+
+draw = function() {
+    try {
+        background(0);
+        // Game{
+        if (!dead) {
+            for (var i in particles) {
+                var that = particles[i];
+                that.run();
+                if (that.fade < 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+            }
+            particles.push(new Particle(x+random(-3, 3), -60, color(255, 0, 0)));
+            if (abs(destination-x) < 40) {
+                destination = random(30, 370);
+            }
+            
+            noStroke();
+            fill(frameCount/10 % 255,150,255);
+            rect(0, b-60, 400, 560);
+            x = lerp(x, destination, speed*0.03);
+            b+=speed;
+            
+            noFill();
+            stroke(frameCount/10 % 255,150,105);
+            strokeWeight(40);
+            rect(0, 0, 400, 500);
+            rect(150, -20, 100, 50);
+            
+            fill(255);
+            text("Score: "+floor(b*speed/10), 200, 30);
+            
+            fill(255);
+            text("FPS: " + floor(this.__frameRate.toFixed(3)), 325, 30);
+            
+            if (((get(mouseX, mouseY) === color(frameCount/10 % 255,150,105)) || (get(mouseX, mouseY) === color(0))) && b > 60) {
+                strokeWeight(10);
+                stroke(360, 250, 250);
+                point(mouseX, mouseY);
+                stroke(frameCount/10 % 255,150,105);
+                fill(0);
+                rect(mouseX-70, mouseY+12, 140, 70);
+                textSize(12);
+                fill(255);
+                text("----------- Game Over -----------", mouseX, mouseY+25);
+                pic = get();
+                dead = true;
+            }
+        }
+        //}
+        // Title{
+            noStroke();
+            fill(frameCount/10 % 255,150,255);
+            rect(0, b-60, 400, 560);
+            
+            r = random(-2.5, 2.5);
+            textSize(55);
+            fill(frameCount/10 % 255,255,100, 100);
+            text("T u n n e l z", 200+r, b+200+r);
+            fill(frameCount/10 % 255,255,100);
+            text("T u n n e l z", 200, b+200);
+            easy.run();
+            medium.run();
+            hard.run();
+            
+            noFill();
+            stroke(frameCount/10 % 255,150,105);
+            strokeWeight(40);
+            rect(0, 0, 400, 500);
+        //}
+        // Dead{
+        if (dead) {
+            image(pic, 0, 0);
+            if (pressed) {
+                background(0);
+                fill(255);
+                textSize(40);
+                text("Loading...", 200, 250);
+                Program.restart();
+            }
+        }
+        //}
+        if (keyIsPressed && keyCode === RIGHT) {
+            var j = get();
+            background(0, 0, 0);
+            image(j, 40, 0, 320, 500);
+            noLoop();
+        }// letterboxing: spam right key+some other key 
+    } catch(err) {
+        println(err);
+    }
+};
+
+mousePressed = function() {
+    pressed = true;
+};
+mouseReleased = function() {
+    pressed = false;
+};
+    }};
+
+  // Get the canvas that ProcessingJS will use
+  var canvas = document.getElementById("mycanvas"); 
+  // Pass the function to ProcessingJS constructor
+  var processingInstance = new Processing(canvas, programCode); 
+  </script>
+</html>
